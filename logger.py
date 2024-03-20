@@ -4,8 +4,10 @@ import datetime as dt
 import logging
 import logging.config
 import pathlib
+
 import json
 from typing import Any, override
+from icecream import icecream
 
 
 class MyJSONFormatter(logging.Formatter):
@@ -47,7 +49,7 @@ logger = logging.getLogger("my_app")
 
 
 def setup_logging() -> None:
-    config_file = pathlib.Path("tools/logger.config.json")
+    config_file = pathlib.Path("utils/logger.config.json")
     with open(config_file) as f_in:
         config: dict[str, Any] = json.load(f_in)
     logging.config.dictConfig(config)
