@@ -1,4 +1,4 @@
-from utils.database.general import  
+from utils.database.general import _session as session_
 from datetime import datetime, timedelta
 from datetime import UTC
 from typing import Annotated
@@ -28,7 +28,10 @@ ALGORITHM = "HS256"
 
 
 def create_access_token(
-    username: str, user_id: int, role: str, expire_delta: timedelta
+    username: str,
+    user_id: int,
+    role: str,
+    expire_delta: timedelta = timedelta(minutes=60),
 ):
     encode = {"sub": username, "id": user_id, "role": role}
     expire = datetime.now(UTC) + expire_delta
