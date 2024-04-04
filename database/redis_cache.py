@@ -1,6 +1,5 @@
 from functools import wraps
 
-
 from fastapi.responses import JSONResponse
 from redis import Redis
 
@@ -9,10 +8,10 @@ r = Redis(host="cache", port=6379, db=0)
 
 def cache_utils(func):
     @wraps(func)
-    def wrapper(question, user):
+    async def wrapper(question, user):
         response = [
             {
-                phrase.strip(): r.hget(
+                phrase.strip(): await r.hget(
                     name=f"user_id->{user.get("id")}", key=phrase.strip()
                 ).decode()
             }

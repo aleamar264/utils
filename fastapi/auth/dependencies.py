@@ -1,12 +1,12 @@
-from utils.database.general import _session as session_
-from datetime import datetime, timedelta
-from datetime import UTC
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
-from starlette import status
-from sqlalchemy.orm import Session
+
 from fastapi import Depends, HTTPException, Request
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from jose import jwt, JWTError
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from sqlalchemy.orm import Session
+from starlette import status
+from utils.database.general import _session as session_
 
 
 def get_db():
