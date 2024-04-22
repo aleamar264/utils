@@ -1,58 +1,81 @@
-from sqlalchemy import create_engine, URL
+from abc import ABC, abstractmethod
+from contextlib import asynccontextmanager, contextmanager
+from typing import AsyncIterator, Iterator
+
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
-from sqlalchemy.engine.base import Engine
+from sqlalchemy import URL, Connection
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
+from sqlalchemy.orm import Session, declared_attr
 
 
 class ReadEnvDatabaseSettings(BaseSettings):
-    drivername: str = Field(..., description="Database Driver")
-    username: str = Field(..., description="Database Username")
-    password: str = Field(..., description="Database Password")
-    host: str = Field(..., description="Database Host")
-    database: str = Field(..., description="Database Name")
-    port: int = Field(..., description="Database Port")
+	drivername: str = Field(..., description="Database Driver")
+	username: str = Field(..., description="Database Username")
+	password: str = Field(..., description="Database Password")
+	host: str = Field(..., description="Database Host")
+	database: str = Field(..., description="Database Name")
+	port: int = Field(..., description="Database Port")
 
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8"
-    )
+	model_config = SettingsConfigDict(
+		env_file=".database.env", env_file_encoding="utf-8"
+	)
 
 
 class DefineGeneralDb(BaseModel):
-    drivername: str = Field(
-        ...,
-        description="Database Driver",
-        examples=["mysql+pymysql", "postgresql+psycopg2"],
-    )
-    username: str = Field(..., description="Database Username")
-    password: str = Field(..., description="Database Password")
-    host: str = Field(..., description="Database Host")
-    database: str = Field(..., description="Database Name")
-    port: int = Field(..., description="Database Port")
-
-    def create_url(self) -> URL:
-        return URL.create(
-            drivername=self.drivername,
-            username=self.username,
-            password=self.password,
-            host=self.host,
-            database=self.database,
-            port=self.port,
-        )
-
-    def create_engine_(self) -> Engine:
-        return create_engine(self.create_url(), echo=False)
-
-    @staticmethod
-    def create_session(engine: Engine):
-        return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+	drivername: str = Field(
+		...,
+		description="Database Driver",
+		examples=["mysql+pymysql", "postgresql+psycopg2", "postgresql+asyncpg"],
+	)
+	username: str = Field(..., description="Database Username")
+	password: str = Field(..., description="Database Password")
+	host: str = Field(..., description="Database Host")
+	database: str = Field(..., description="Database Name")
+	port: int = Field(..., description="Database Port")
 
 
-_env = ReadEnvDatabaseSettings()
-_database: DefineGeneralDb = DefineGeneralDb(**_env.model_dump())
-_engine = _database.create_engine_()
-_session: Session = _database.create_session(_engine)
+class BaseSessionManager(ABC):
+	def __init__(self, db_params: DefineGeneralDb) -> None:
+		self.db_params = db_params
+
+	def create_url(self) -> URL:
+		return URL.create(**self.db_params.model_dump())
 
 
-class Base(DeclarativeBase):
-    pass
+class DatabaseSessionManager(BaseSessionManager):
+	@abstractmethod
+	def close(self):
+		pass
+
+	@abstractmethod
+	@contextmanager
+	def connect(self) -> Iterator[Connection]:
+		pass
+
+	@abstractmethod
+	@contextmanager
+	def session(self) -> Iterator[Session]:
+		pass
+
+
+class AsyncDatabaseSessionManager(BaseSessionManager):
+	@abstractmethod
+	def async_close(self):
+		pass
+
+	@abstractmethod
+	@asynccontextmanager
+	def async_connect(self) -> AsyncIterator[AsyncConnection]:
+		pass
+
+	@abstractmethod
+	@asynccontextmanager
+	def async_session(self) -> AsyncIterator[AsyncSession]:
+		pass
+
+
+class MixInNameTable:
+	@declared_attr.directive
+	def __tablename__(cls):
+		return cls.__name__.lower()
