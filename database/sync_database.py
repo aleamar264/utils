@@ -5,7 +5,9 @@ from loguru import logger
 from sqlalchemy import Connection, Engine, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
-from user.utils.fastapi.exceptions.general import ServiceError
+
+
+from utils.fastapi.exceptions.general import ServiceError
 
 from .general import DatabaseSessionManager, DefineGeneralDb, ReadEnvDatabaseSettings
 

@@ -39,6 +39,12 @@ class InvalidTokenError(UserApiError):
 	pass
 
 
+class InvalidCredentialsError(UserApiError):
+	"""Invalid credentials"""
+
+	pass
+
+
 def create_exception_handler(
 	status_code: int, initial_detail: str
 ) -> Callable[[Request, UserApiError], JSONResponse]:

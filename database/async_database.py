@@ -1,6 +1,7 @@
 import contextlib
 from typing import Annotated, AsyncIterator, override
 
+from fastapi import Depends
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import (
@@ -11,6 +12,7 @@ from sqlalchemy.ext.asyncio import (
 	create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
+
 from utils.database.general import DefineGeneralDb
 from utils.fastapi.exceptions.general import ServiceError
 
@@ -75,7 +77,7 @@ async def get_db_session():
 		yield session
 
 
-depend_db_annotated = Annotated[AsyncSession, get_db_session()]
+depend_db_annotated = Annotated[AsyncSession, Depends(get_db_session)]
 
 
 class Base(DeclarativeBase):
