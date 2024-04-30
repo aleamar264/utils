@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import (
 	create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
-
 from utils.database.general import DefineGeneralDb
 from utils.fastapi.exceptions.general import ServiceError
 
