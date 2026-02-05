@@ -3,10 +3,16 @@ from logging import LogRecord
 import datetime as dt
 import logging
 import logging.config
-import pathlib
+from pathlib import Path
+from loguru import logger as _logger
+from loguru._logger import Logger as LoguruLogger
 
 import json
-from typing import Any, override
+from typing import override, Protocol, TypeVar, Any
+import sys
+
+
+T = TypeVar("T", covariant=True)
 
 
 class MyJSONFormatter(logging.Formatter):
@@ -43,15 +49,140 @@ class MyJSONFormatter(logging.Formatter):
         return message
 
 
-# get logger
-logger = logging.getLogger("my_app")
+class LoggingSetup(Protocol[T]):
+    def setup(self, **kwargs) -> None:
+        """
+        Docstring for setup
+
+        :param self: Description
+        :param config_path: Description
+        :type config_path: Path
+
+        Example:
+            ```python
+            config_path = Path.cwd() / "logger.config.json"
+            LoguruLoggin().setup(config_path)
+            ```
+        """
+
+    def get_logger(self, name: str) -> T: ...
 
 
-def setup_logging() -> None:
-    config_file = pathlib.Path("utils/logger/logger.config.json")
-    with open(config_file) as f_in:
-        config: dict[str, Any] = json.load(f_in)
-    logging.config.dictConfig(config)
-    if (queue_handler := logging.getHandlerByName("queue_handler")) is not None:
-        queue_handler.listener.start()
-        atexit.register(queue_handler.listener.stop)
+class BuiltinLogging:
+    _configured = False
+
+    def setup(self, config_path: Path, default_path: bool = True) -> None:
+        """
+        Docstring for setup
+
+        :param config_path: For the builtin logging you can use
+        a file to setup the logger. The file logger.config.json is used by default
+        :type config_path: Path
+        :param default_path: If this enabled, the file used is logger.config.json.
+        If this is enabled, the config_path is ignored and use the default.\
+        To use the user config_path, set this in *False*
+        :type default_path: bool
+
+        Example:
+            ```python
+            config_path = Path.cwd() / "logger.config.json"
+            BuiltinLogging().setup(config_path=config_path, default_path=False)
+            ```
+        """
+        if self._configured:
+            return
+
+        if default_path:
+            _config_path = Path.cwd() / "logger.config.json"
+        else:
+            _config_path = config_path
+        with _config_path.open(encoding="utf-8") as f:
+            config = json.load(f)
+
+        logging.config.dictConfig(config)
+
+        if (qh := logging.getHandlerByName("queue_handler")) is not None:
+            qh.listener.start()
+            atexit.register(qh.listener.stop)
+
+        self._configured = True
+
+    def get_logger(self, name: str) -> logging.Logger:
+        return logging.getLogger(name)
+
+
+class LoguruLogging:
+    _configured = False
+
+    def setup(
+        self, logs_sinks: list[dict[str, Any]], default_config: bool = False
+    ) -> None:
+        """
+        Docstring for setup
+
+        :param self: Description
+        :param logs_sinks: A list of dictionary with the configuration for each configuration for the logger.
+        :type logs_sinks: list[dict[str, Any]
+        :param default_config: If this is set True, this will use the following configuration:
+            ```python
+            # 1️⃣ STDERR — human readable, WARNING+
+            logger.add(
+                sys.stderr,
+                level="WARNING",
+                format="<level>{level}</level>: {message}",
+                enqueue=True,  # async & multiprocess-safe
+            )
+
+            # 2️⃣ FILE — JSON logs, DEBUG+, rotating
+            # Where the LOG_DIR will be a folder call log
+            logger.add(
+                LOG_DIR / "my_app.log.jsonl",
+                level="DEBUG",
+                serialize=True,          # JSON output
+                rotation="10 KB",        # maxBytes: 10000
+                retention=7,             # backupCount: 7
+                enqueue=True,
+            )
+            ```
+        :type default_config: bool
+
+        Example:
+            ```python
+            config_path = Path.cwd() / "logger.config.json"
+            LoguruLoggin().setup(config_path)
+            ```
+        """
+        if self._configured:
+            return
+        if default_config:
+            _logger.add(
+                sys.stderr,
+                level="INFO",
+                format="<level>{level}</level>: {message}",
+                enqueue=True,  # async & multiprocess-safe
+            )
+            LOG_DIR = Path().parent / "log"
+            LOG_DIR.mkdir(exist_ok=True, parents=True) 
+            _logger.add(
+                LOG_DIR / "my_log.log.jsonl",
+                level="DEBUG",
+                serialize=True,  # JSON output
+                rotation="10 KB",  # maxBytes: 10000
+                retention=7,  # backupCount: 7
+                enqueue=True,
+            )
+            self._configured = True
+            return
+        for i, log_sink in enumerate(logs_sinks, start=1):
+            try:
+                _logger.add(**log_sink)
+            except Exception as exc:
+                raise RuntimeError(
+                    f"Invalid log sink configuration at index {i}: {log_sink}"
+                ) from exc
+
+        self._configured = True
+
+    def get_logger(self, name: str) -> LoguruLogger:
+        # Context, not identity
+        return _logger.bind(service=name)

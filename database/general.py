@@ -79,3 +79,9 @@ class MixInNameTable:
 	@declared_attr.directive
 	def __tablename__(cls):
 		return cls.__name__.lower()
+
+
+class ServiceError(Exception):
+	def __init__(self, msg: str | None = None) -> None:
+		self.msg = msg
+		super().__init__(self.msg)
