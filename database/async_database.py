@@ -1,19 +1,20 @@
 import contextlib
-from typing import AsyncIterator, override
+from collections.abc import AsyncIterator
+from typing import override
 
+from database.general import DefineGeneralDb, ServiceError
+from logger.logger import LoggingSetup
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import (
-    AsyncConnection,
-    AsyncEngine,
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
+	AsyncConnection,
+	AsyncEngine,
+	AsyncSession,
+	async_sessionmaker,
+	create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
-from general import DefineGeneralDb, ServiceError
 
 from .general import AsyncDatabaseSessionManager
-from logger.logger import LoggingSetup
 
 
 class AsyncDatabaseManager(AsyncDatabaseSessionManager):
@@ -35,21 +36,21 @@ class AsyncDatabaseManager(AsyncDatabaseSessionManager):
 			__init__(db_params: DefineGeneralDb, logging: LoggingSetup) -> None:
 				Initializes the AsyncDatabaseManager with database parameters and logging configuration.
 				Creates and configures the async engine and sessionmaker.
-				
+
 				Args:
 					db_params: Database configuration parameters.
 					logging: Logging setup instance to configure logger.
-					
+
 				Raises:
 					Logs "Engine setup correctly" upon successful initialization.
 
 			async def async_close() -> None:
 				Disposes of the database engine and releases all resources.
 				Sets engine and sessionmaker to None after disposal.
-				
+
 				Raises:
 					ServiceError: If engine is not initialized or if SQLAlchemy errors occur during disposal.
-					
+
 				Example:
 					```python
 					await manager.async_close()
@@ -58,13 +59,13 @@ class AsyncDatabaseManager(AsyncDatabaseSessionManager):
 			async def async_connect() -> AsyncIterator[AsyncConnection]:
 				Context manager that provides an async database session with ORM support.
 				Automatically rolls back on errors and closes the session on exit.
-				
+
 				Yields:
 					AsyncSession: A SQLAlchemy async session object for ORM operations.
-					
+
 				Raises:
 					ServiceError: If sessionmaker is not initialized or if session operations fail.
-					
+
 				Example:
 				```python
 					async with manager.async_session() as session:
@@ -76,7 +77,7 @@ class AsyncDatabaseManager(AsyncDatabaseSessionManager):
 					```python
 					app = FastAPI()
 
-					
+
 					async def get_db_session():
 						async with sessionmanager.async_session() as session:
 							yield session
@@ -118,10 +119,10 @@ class AsyncDatabaseManager(AsyncDatabaseSessionManager):
 		"""
 		Disposes of the database engine and releases all resources.
 		Sets engine and sessionmaker to None after disposal.
-		
+
 		Raises:
 			ServiceError: If engine is not initialized or if SQLAlchemy errors occur during disposal.
-			
+
 		Example:
 			```python
 			await manager.async_close()
@@ -150,13 +151,14 @@ class AsyncDatabaseManager(AsyncDatabaseSessionManager):
 	async def async_connect(self) -> AsyncIterator[AsyncConnection]:
 		"""Context manager that provides a raw database connection with transaction support.
 			Automatically rolls back on SQLAlchemy errors.
-			
+
+
 			Yields:
 				AsyncConnection: A SQLAlchemy async connection object.
-				
+
 			Raises:
 				ServiceError: If engine is not initialized or if connection operations fail.
-				
+
 			Example:
 			```python
 				async with manager.async_connect() as connection:
@@ -182,13 +184,13 @@ class AsyncDatabaseManager(AsyncDatabaseSessionManager):
 		"""
 		Context manager that provides an async database session with ORM support.
 				Automatically rolls back on errors and closes the session on exit.
-				
+
 				Yields:
 					AsyncSession: A SQLAlchemy async session object for ORM operations.
-					
+
 				Raises:
 					ServiceError: If sessionmaker is not initialized or if session operations fail.
-					
+
 				Example:
 				```python
 					async with manager.async_session() as session:
@@ -200,10 +202,10 @@ class AsyncDatabaseManager(AsyncDatabaseSessionManager):
 			```python
 			app = FastAPI()
 
-			
+
 			async def get_db_session():
-    			async with sessionmanager.async_session() as session:
-        			yield session
+				async with sessionmanager.async_session() as session:
+					yield session
 
 
 			@app.get("/users/{user_id}")

@@ -1,11 +1,13 @@
 import contextlib
-from typing import Iterator, override
+from collections.abc import Iterator
+from typing import override
+
+from logger.logger import LoggingSetup
 from sqlalchemy import Connection, Engine, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
 from .general import DatabaseSessionManager, DefineGeneralDb, ServiceError
-from logger.logger import LoggingSetup
 
 
 class SyncDatabaseManager(DatabaseSessionManager):

@@ -1,7 +1,8 @@
-from fastapi import Request
-from .logger.logger import logger, setup_logging
 import time
 
+from fastapi import Request
+
+from .logger.logger import logger, setup_logging
 
 setup_logging()
 

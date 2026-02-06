@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager, contextmanager
-from typing import AsyncIterator, Iterator
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -35,7 +35,7 @@ class DefineGeneralDb(BaseModel):
 	port: int = Field(..., description="Database Port")
 
 
-class BaseSessionManager(ABC):
+class BaseSessionManager:
 	def __init__(self, db_params: DefineGeneralDb) -> None:
 		self.db_params = db_params
 
@@ -43,7 +43,7 @@ class BaseSessionManager(ABC):
 		return URL.create(**self.db_params.model_dump())
 
 
-class DatabaseSessionManager(BaseSessionManager):
+class DatabaseSessionManager(ABC, BaseSessionManager):
 	@abstractmethod
 	def close(self):
 		pass
@@ -59,7 +59,7 @@ class DatabaseSessionManager(BaseSessionManager):
 		pass
 
 
-class AsyncDatabaseSessionManager(BaseSessionManager):
+class AsyncDatabaseSessionManager(ABC, BaseSessionManager):
 	@abstractmethod
 	def async_close(self):
 		pass

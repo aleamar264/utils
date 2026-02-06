@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Sequence
+from collections.abc import Sequence
 from uuid import UUID
 
 from schemas.user import ResponseUser as user_schema
 from schemas.user import UpdateOtherFields, UpdatePassword
 from schemas.user import User as user_create
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from utils.database.sync_database import depend_db_annotated
 
 
