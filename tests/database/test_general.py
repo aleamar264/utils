@@ -64,20 +64,20 @@ PORT=5432
 
 # Tests for DefineGeneralDb
 class TestDefineGeneralDb:
-    def test_valid_db_config(self, db_params: DefineGeneralDb):
+    def test_valid_db_config(self, async_db_params: DefineGeneralDb):
         """Test valid database configuration."""
-        assert db_params.drivername == "postgresql+asyncpg"
-        assert db_params.username == "user"
-        assert db_params.password == "pass"
-        assert db_params.host == "localhost"
-        assert db_params.database == "testdb"
-        assert db_params.port == 5432
+        assert async_db_params.drivername == "postgresql+asyncpg"
+        assert async_db_params.username == "user"
+        assert async_db_params.password == "pass"
+        assert async_db_params.host == "localhost"
+        assert async_db_params.database == "testdb"
+        assert async_db_params.port == 5432
 
     def test_model_dump(self, db_params: DefineGeneralDb):
         """Test model_dump returns correct dictionary."""
         dumped = db_params.model_dump()
         assert dumped == {
-            "drivername": "postgresql+asyncpg",
+            "drivername": "postgresql+psycopg2",
             "username": "user",
             "password": "pass",
             "host": "localhost",
@@ -94,10 +94,10 @@ class TestBaseSessionManager:
         manager = BaseSessionManager(db_params)
         assert manager.db_params == db_params
 
-    def test_create_url(self, db_params: DefineGeneralDb):
+    def test_create_url(self, async_db_params: DefineGeneralDb):
         """Test URL creation from db_params."""
 
-        manager = BaseSessionManager(db_params)
+        manager = BaseSessionManager(async_db_params)
         url = manager.create_url()
 
         assert isinstance(url, URL)

@@ -131,7 +131,7 @@ class SyncDatabaseManager(DatabaseSessionManager):
 			except SQLAlchemyError as exc:
 				connection.rollback()
 				self.logger.opt(exception=exc).error(
-					"Database error while using async connection"
+					"Database error while using sync connection"
 				)
 				raise ServiceError("Database connection failed") from exc
 
@@ -162,7 +162,7 @@ class SyncDatabaseManager(DatabaseSessionManager):
 			self.logger.bind(
 				engine=str(self.engine)
 			).opt(exception=exc).error(
-				"Database error while using async session"
+				"Database error while using sync session"
 			)
 
 			raise ServiceError("Database session failed") from exc

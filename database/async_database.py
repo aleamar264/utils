@@ -107,7 +107,7 @@ class AsyncDatabaseManager(AsyncDatabaseSessionManager):
 
 		"""
 		super().__init__(db_params)
-		self.logger = logging.get_logger("database")
+		self.logger = logging.get_logger(name="database")
 		self.engine: AsyncEngine | None = create_async_engine(self.create_url())
 		self._sessionmaker: async_sessionmaker[AsyncSession] = async_sessionmaker(
 			autocommit=False, bind=self.engine

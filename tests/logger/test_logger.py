@@ -1,11 +1,10 @@
-from unittest.mock import Mock
-from database.general import ServiceError
-import pytest
 import io
 import json
 import logging
 import sys
 
+import pytest
+from database.general import ServiceError
 from logger.logger import BuiltinLogging, LoguruLogging, MyJSONFormatter
 
 

@@ -1,4 +1,3 @@
-from database.general import ServiceError
 import atexit
 import datetime as dt
 import json
@@ -9,6 +8,7 @@ from logging import LogRecord
 from pathlib import Path
 from typing import Any, Protocol, TypeVar, override, runtime_checkable
 
+from database.general import ServiceError
 from loguru import logger as _logger
 from loguru._logger import Logger as LoguruLogger
 
@@ -50,7 +50,7 @@ class MyJSONFormatter(logging.Formatter):
 
 
 @runtime_checkable
-class LoggingSetup(Protocol[T]):
+class LoggingSetup(Protocol):
 	def setup(self, **kwargs) -> None:
 		"""
 		Docstring for setup
@@ -116,7 +116,7 @@ class LoguruLogging:
 	_configured = False
 
 	def setup(
-		self, logs_sinks: list[dict[str, Any]] | None = None, 
+		self, logs_sinks: list[dict[str, Any]] | None = None,
 		default_config: bool = False,
 		default_path: Path = Path().parent / "log"
 	) -> None:
