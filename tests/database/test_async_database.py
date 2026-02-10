@@ -187,7 +187,7 @@ async def test_async_session_exception(
             logger.setup(default_path=tmp_path, default_config=True)
             async_db_manager = AsyncDatabaseManager(db_params=db_params, logging=logger)
             with pytest.raises(ServiceError):
-                async with async_db_manager.async_session() as session:
+                async with async_db_manager.async_session():
                     raise SQLAlchemyError("Simulated error")
 
             # Verify session lifecycle
