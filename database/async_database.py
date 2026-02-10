@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import (
 	async_sessionmaker,
 	create_async_engine,
 )
-from sqlalchemy.orm import DeclarativeBase
 
 from .general import AsyncDatabaseSessionManager
 
@@ -231,9 +230,3 @@ class AsyncDatabaseManager(AsyncDatabaseSessionManager):
 			raise ServiceError("Database session failed") from exc
 		finally:
 			await session.close()
-
-
-
-
-class Base(DeclarativeBase):
-    pass
